@@ -52,3 +52,17 @@ def Test_eval(model, testloader, criterion, model_save_pth, device):
       pred = mask_to_rgb(np.array(preds), CONFIG.id2code)
       print(f"Test loss is: {test_loss:.4f}")
       return np.array(imgs), np.array(masks), np.array(pred)
+
+def myTest_eval(model, image, model_save_pth, device):
+      model.load_state_dict(torch.load(model_save_pth))
+      model.eval()
+      imgs, masks, preds = [], [], []
+
+      inp = image.to(device)
+      imgs.extend(inp.cpu().numpy())
+      out = model(inp.float())
+      preds.extend(out.detach().cpu().numpy())
+
+      pred = mask_to_rgb(np.array(preds), CONFIG.id2code)
+      return np.array(pred)[0]
+
