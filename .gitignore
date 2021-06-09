@@ -1,3 +1,5 @@
 images/
 U-Net/src/__pycache__
 U-Net/__pycache__
+.*
+*isolated
