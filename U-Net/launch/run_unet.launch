@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="u_net" type="test.py" name="u_net" output="screen">
+    </node>
+</launch>
