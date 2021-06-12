@@ -13,23 +13,32 @@ import rospy
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 
+import time
 class MyUnet:
     def __init__(self):
-        self.pub = rospy.Publisher('segmentated_image', Image, queue_size=10)
-        self.CONFIG = config()
-        self.path = CONFIG.path
-        self.batch = CONFIG.batch
-        self.input_size = CONFIG.input_size
-        self.load_model_pth = CONFIG.load_model
-        self.device = CONFIG.device
+        self.pub = rospy.Publisher('segmentated_image', Image, queue_size=1)
+
+        segmentation_hz = rospy.get_param("u_net/segmentation_hz", 1)
+        self.loop_rate = rospy.Rate(segmentation_hz)
+        self.image_height = rospy.get_param("u_net/image_height", 128)
+        self.image_width = rospy.get_param("u_net/image_width", 128)
+        self.load_model_pth = rospy.get_param('u_net/load_model_pth', '/')
+        class_color_dict_pth = rospy.get_param('u_net/class_color_dict_pth', '/')
+        self.code2id, self.id2code, self.name2id, self.id2name = Color_map(class_color_dict_pth)
+        if(torch.cuda.is_available()):
+            self.device = torch.device("cuda")
+        else:
+            self.device = torch.device("cpu")
 
         self.transform = transforms.Compose([
             transforms.ToPILImage(),
-            transforms.Resize(self.input_size, 0),
+            transforms.Resize((self.image_height, self.image_width), 0),
             transforms.ToTensor(),
         ])
         self.model = UNet(3, 32, True).to(self.device)
+
         self.bridge = CvBridge()
+        rospy.loginfo("complete loading U-Net")
 
 
     def callback(self, msg):
@@ -42,14 +51,16 @@ class MyUnet:
         _, height, width = image.shape
         image = image.view(1, 3, height, width)
 
-        pred = myTest_eval(self.model, image, self.load_model_pth, self.device)
+        pred = myTest_eval(self.model, image, self.load_model_pth, self.device, self.id2code)
         pred = cv2.cvtColor(pred, cv2.COLOR_RGB2BGR)
         try:
             imageMsg = self.bridge.cv2_to_imgmsg(pred, "bgr8")
             self.pub.publish(imageMsg)
         except Exception as e:
             print(e)
+        self.loop_rate.sleep()
         
+
 
 if __name__ == "__main__":
     rospy.init_node('UNet')

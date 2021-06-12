@@ -66,6 +66,24 @@ def rgb_to_mask(img, color_map):
         out[:,:,i] = np.all(np.array(img).reshape( (-1,3) ) == color_map[i], axis=1).reshape(shape[:2])
     return out.transpose(2,0,1)
 
+def mymask_to_rgb(mask, color_map):
+    ''' 
+        Converts a Binary Mask of shape to RGB image mask of shape [batch_size, h, w, 3]
+
+        Parameters:
+            img: A Binary mask
+            color_map: Dictionary representing color mappings
+
+        returns:
+            out: A RGB mask of shape [batch_size, h, w, 3]
+    '''
+    single_layer = np.asarray(torch.argmax(mask, dim=1).cpu().detach(), dtype=np.uint8)
+    output = np.zeros((mask.shape[0],mask.shape[2],mask.shape[3],3))
+    for k in color_map.keys():
+        output[single_layer==k] = color_map[k]
+    return np.uint8(output)
+
+
 def mask_to_rgb(mask, color_map):
     ''' 
         Converts a Binary Mask of shape to RGB image mask of shape [batch_size, h, w, 3]

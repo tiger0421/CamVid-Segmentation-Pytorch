@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <launch>
-    <node pkg="u_net" type="test.py" name="u_net" output="screen">
+    <node pkg="u_net" type="unet_node.py" name="u_net" output="screen">
+        <param name="segmentation_hz" type="double" value="5"/>
+        <param name="image_height" type="int" value="480"/>
+        <param name="image_width" type="int" value="640"/>
+        <param name="load_model_pth" type="str" value="$(find u_net)/model/state_dict.pt"/>
+        <param name="class_color_dict_pth" type="str" value="$(find u_net)/Dataset/class_dict.csv"/>
     </node>
 </launch>
