@@ -1,0 +1,30 @@
+version: '2.3'
+
+services:
+  xwindow:
+    image: busybox
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ~/.Xauthority:/root/.Xauthority:rw
+      - /tmp/.docker.$USER.xauth:/tmp/.docker.xauth:ro
+  unet:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    shm_size: '8gb'
+    image: ddrnet/pytorch:1.7.0-cuda11.0-cudnn8-runtime
+    container_name: unet
+    tty: true
+    runtime: nvidia
+    group_add:
+      - video
+    environment:
+      - MESA_GL_VERSION_OVERRIDE=4.2
+      - XAUTHORITY=/tmp/.docker.xauth
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - ~/share:/root/share:rw
+    volumes_from:
+      - xwindow
+    command: /bin/bash
