@@ -19,7 +19,9 @@ class MyUnet:
         self.pub = rospy.Publisher('segmentated_image', Image, queue_size=1)
 
         segmentation_hz = rospy.get_param("u_net/segmentation_hz", 1)
-        self.loop_rate = rospy.Rate(segmentation_hz)
+        camera_fps = rospy.get_param("camera_fps", 30)
+        self.cnt = 0
+        self.border = camera_fps // segmentation_hz
         self.image_height = rospy.get_param("u_net/image_height", 128)
         self.image_width = rospy.get_param("u_net/image_width", 128)
         self.load_model_pth = rospy.get_param('u_net/load_model_pth', '/')
@@ -42,28 +44,29 @@ class MyUnet:
 
 
     def callback(self, msg):
-        try:
-            image_orig = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
-        except CvBridgeError as e:
-            print(e)
-        image = cv2.cvtColor(image_orig, cv2.COLOR_BGR2RGB)
-        image = self.transform(image)
-        _, height, width = image.shape
-        image = image.view(1, 3, height, width)
+        self.cnt += 1
+        self.cnt %= self.border
+        if self.cnt == 0:
+            try:
+                image_orig = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+            except CvBridgeError as e:
+                print(e)
+            image = cv2.cvtColor(image_orig, cv2.COLOR_BGR2RGB)
+            image = self.transform(image)
+            _, height, width = image.shape
+            image = image.view(1, 3, height, width)
 
-        pred = myTest_eval(self.model, image, self.load_model_pth, self.device, self.id2code)
-        pred = cv2.cvtColor(pred, cv2.COLOR_RGB2BGR)
-        try:
-            imageMsg = self.bridge.cv2_to_imgmsg(pred, "bgr8")
-            self.pub.publish(imageMsg)
-        except Exception as e:
-            print(e)
-        self.loop_rate.sleep()
+            pred = myTest_eval(self.model, image, self.load_model_pth, self.device, self.id2code)
+            pred = cv2.cvtColor(pred, cv2.COLOR_RGB2BGR)
+            try:
+                imageMsg = self.bridge.cv2_to_imgmsg(pred, "bgr8")
+                self.pub.publish(imageMsg)
+            except Exception as e:
+                print(e)
         
-
 
 if __name__ == "__main__":
     rospy.init_node('UNet')
     myUnet = MyUnet()
-    rospy.Subscriber("image_raw", Image, myUnet.callback)
+    rospy.Subscriber("image_raw", Image, myUnet.callback, queue_size=1)
     rospy.spin()
