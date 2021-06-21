@@ -38,6 +38,8 @@ class MyUnet:
             transforms.ToTensor(),
         ])
         self.model = UNet(3, 32, True).to(self.device)
+        self.model.load_state_dict(torch.load(self.load_model_pth))
+        self.model.eval()
 
         self.bridge = CvBridge()
         rospy.loginfo("complete loading U-Net")
