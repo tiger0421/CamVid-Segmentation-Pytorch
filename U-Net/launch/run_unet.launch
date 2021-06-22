@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <launch>
     <node pkg="u_net" type="unet_node.py" name="u_net" output="screen">
-        <param name="segmentation_hz" type="double" value="5"/>
+        <remap from="image_raw" to="videofile/image_raw"/>
+        <param name="segmentation_hz" type="double" value="4"/>
+        <param name="camera_fps" type="double" value="30"/>
         <param name="image_height" type="int" value="480"/>
         <param name="image_width" type="int" value="640"/>
         <param name="load_model_pth" type="str" value="$(find u_net)/model/state_dict.pt"/>

@@ -51,8 +51,6 @@ def Test_eval(model, testloader, criterion, model_save_pth, device):
       return np.array(imgs), np.array(masks), np.array(pred)
 
 def myTest_eval(model, image, model_save_pth, device, id2code):
-      model.load_state_dict(torch.load(model_save_pth))
-      model.eval()
       preds = []
 
       inp = image.to(device)
