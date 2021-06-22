@@ -3,9 +3,6 @@ import torch.nn as nn
 import numpy as np
 from src.IoU import *
 from src.utils import *
-from config import config
-
-CONFIG = config()
 
 def Validate(model, validloader, criterion, valid_loss_min, device, model_path):
     valid_loss = 0

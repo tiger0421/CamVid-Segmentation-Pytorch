@@ -4,7 +4,6 @@ import torch
 from torchvision import datasets, transforms
 from src.model import UNet
 from src.loss import FocalLoss
-from config import config
 from src.utils import *
 from src.IoU import *
 from src.eval import *
